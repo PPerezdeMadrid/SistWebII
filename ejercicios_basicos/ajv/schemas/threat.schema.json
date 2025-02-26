@@ -1,0 +1,33 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Threat",
+    "type": "object",
+    "properties": {
+      "cve": {
+        "type": "string",
+        "description": "CVE de la amenaza"
+      },
+      "name": {
+        "type": "string",
+        "description": "Nombre de la amenaza"
+      },
+      "description": {
+        "type": "string",
+        "description": "Descripción detallada de la amenaza"
+      },
+      "countermeasures": {
+        "type": "array",
+        "items": {
+            "type": "string"
+        },
+        "description": "Lista de contramedidas aplicables para reducir la amenaza"
+      },
+      "severity": {
+        "type": "string",
+        "enum": ["low", "medium", "high", "critical"],
+        "description": "Nivel de gravedad de la amenaza"
+      }
+    },
+    "required": ["cve", "severity"]
+  }
+  

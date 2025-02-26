@@ -1,0 +1,32 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Countermeasure",
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Identificador único de la contramedida"
+      },
+      "name": {
+        "type": "string",
+        "description": "Nombre de la contramedida"
+      },
+      "description": {
+        "type": "string",
+        "description": "Descripción detallada de la contramedida"
+      },
+      "effectiveness": {
+        "type": "string",
+        "enum": ["low", "medium", "high"],
+        "description": "Nivel de efectividad de la contramedida"
+      },
+      "related_threats": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Lista de identificadores de amenazas a las que se aplica esta contramedida"
+      }
+    },
+    "required": ["id", "name", "effectiveness"]
+}
