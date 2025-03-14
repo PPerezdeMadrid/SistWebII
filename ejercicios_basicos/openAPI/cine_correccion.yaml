@@ -6,49 +6,24 @@ server:
   url: http://localhost:3000/api
 paths:
   /sesiones:
+    parameters: 
+      $ref: '#/components/parameters/sesiones'
     get:
       summary: Obtiene una lista de sesiones
       description: Este endpoint devuelve una lista con todas las sesiones disponibles y sus detalles.
-      parameters:
-        - name: fecha
-          in: query
-          required: false
-          description: Fecha para filtrar las sesiones 
-          schema:
-            type: string
-            format: date-time
-        - name: formato
-          in: query
-          required: false
-          description: Formato de la sesión (3D, 4D, 2D)
-          schema:
-            type: string
-            enum: [3D, 4D, 2D]
-        - name: sala
-          in: query
-          required: false
-          description: Nombre de la sala donde se proyecta la película
-          schema:
-            type: string
       responses:
         200:
           description: Lista de sesiones disponibles
           content:
             application/json:
               schema:
-                type: array
-                items:
                   $ref: '#/components/schemas/sesion'
         400:
-          description: Algún parametro está mal
+          description: Algún parametro es incorrecto
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Parámetro incorrecto.
+                $ref: '#/components/schemas/error'
     post:
       summary: Crea una nueva sesión
       description: Crea una nueva sesión con los detalles proporcionados en el cuerpo de la solicitud.
@@ -64,33 +39,20 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                    example: 2
-        400:
+                $ref: '#/components/schemas/nuevaSesion'
+        "4XX":
           description: Datos inválidos
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Datos de la sesión no válidos
+                $ref: '#/components/schemas/error'
 
   /sesiones/{id}:
+    parameters:
+      $ref: '#/components/parameters/id'
     get:
       summary: Obtiene detalles de una sesión específica
       description: Devuelve la información de una sesión con el ID especificado.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID de la sesión
-          schema:
-            type: integer
       responses:
         200:
           description: Detalles de la sesión
@@ -99,53 +61,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/sesion'
         404:
-          description: Sesión no encontrada
+          description: ID no válido
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Sesión no encontrada
+                $ref: '#/components/schemas/error'
 
     put:
       summary: Modifica una sesión
       description: Permite actualizar los detalles de una sesión existente.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID de la sesión
-          schema:
-            type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/sesion'
+              $ref: '#/components/schemas/sesion_actualizar' # Modificar solo algunos parámetros
       responses:
         200:
           description: Sesión actualizada con éxito
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  mensaje:
-                    type: string
-                    example: Sesión actualizada con éxito
+                $ref: '#/components/schemas/nuevaSesion
         404:
           description: Sesión no encontrada
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Sesión no encontrada
+                $ref: '#/components/schemas/error'
 
     delete:
       summary: Elimina una sesión
@@ -163,114 +106,37 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  mensaje:
-                    type: string
-                    example: Sesión eliminada con éxito
+                $ref: '#/components/schemas/mensajeInformativo'
         404:
           description: Sesión no encontrada
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Sesión no encontrada
+                $ref: '#/components/schemas/error'
 
   /sesiones/{id}/reservar:
     post:
       summary: Comprar una entrada para una sesión
       description: Permite comprar una entrada para una sesión especificada, incluyendo el número de entradas y los asientos a reservar.
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID de la sesión para la que se desea comprar la entrada
-          schema:
-            type: integer
+        $ref: '#/components/parameters/id'
       requestBody:
         required: true
         content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                numero_entradas:
-                  type: integer
-                  example: 2
-                asientos:
-                  type: array
-                  items:
-                    type: string
-                    example: A1
-                  description: Lista de asientos a reservar
+          $ref: '#/components/schemas/compra'
       responses:
         201:
           description: Entrada comprada con éxito
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  mensaje:
-                    type: string
-                    example: Entrada comprada con éxito
-                  entrada:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        example: 123
-                      numero_entradas:
-                        type: integer
-                        example: 2
-                      asientos:
-                        type: array
-                        items:
-                          type: string
-                          example: A1
-        400:
+                $ref: '#/components/schemas/ticket'
+        "4XX":
           description: El JSON no es correcto
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Los datos enviados son incorrectos
-        401:
-          description: No estamos autorizados
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: No estás autorizado para realizar esta acción
-        403:
-          description: No tenemos permiso
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: No tienes permiso para comprar entradas para esta sesión
-        404:
-          description: ID no válido
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: No se encontró la sesión con el ID especificado
+               $ref: '#/components/schemas/error'
 
   /peliculas:
     get:
@@ -403,41 +269,79 @@ paths:
                     example: Película no encontrada
 
 components:
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      description: ID de la sesión
+      schema:
+        $ref: '#/components/schemas/id'
+    date:
+      name: date
+      in: query
+      required: false
+      description: Fecha para filtrar las sesiones
+      schema:
+        $ref: '#/components/schemas/date'
+    film:
+      name: film
+      in: query
+      required: false
+      description: Película para filtrar las sesiones
+      schema:
+        $ref: '#/components/schemas/film'
+    version:
+      name: version
+      in: query
+      required: false
+      description: versión de la película
+      schema:
+        $ref: '#/components/schemas/version'
+
   schemas:
     sesion:
       type: object
       properties:
-        id:
-          type: integer
-          example: 1
-        pelicula_id:
-          type: integer
-          example: 101
-        sala:
-          type: string
-          example: Sala 1
-        fecha:
-          type: string
-          format: date-time
-          example: '2025-03-08T14:30:00Z'
-        formato:
-          type: string
-          enum: [3D, 4D, 2D]
-    pelicula:
+        results:
+          $ref: '#/components/schemas/sesiones_array' # Lista de sesiones
+        next: # Quieres más sesiones? Acceder a la siguiente parte de la paginación
+          anyOf: # Puede ser un string o un objeto
+            - type: string
+            - type: null
+          required:
+            - results
+            - next
+    sesiones_array:
+        type: array
+        items:
+          $ref: '#/components/schemas/sesion'
+    sesion:
       type: object
       properties:
         id:
+          $ref: '#/components/schemas/id'
+        pelicula:
+          $ref: '#/components/schemas/pelicula' # TODO
+        fecha:
+          $ref: '#/components/schemas/date'
+        sala:
+          type: string
+          example: Sala 1
+        version:
+          type: string
+          enum: [original, doblada, subtitulada]
+        formato:
+          $type: string
+          enum: [3D, 4D, 2D]
+        asientos_disponibles:
           type: integer
-          example: 101
-        titulo:
-          type: string
-          example: 'Avengers: Endgame'
-        duracion:
-          type: integer
-          example: 181
-        descripcion:
-          type: string
-          example: 'El equipo de Vengadores lucha por devolver el orden en el universo después de los eventos de Avengers: Infinity War.'
-        clasificacion:
-          type: string
-          example: 'PG-13'
+          minimum: 0
+        adaptada:
+          type: boolean
+        precio:
+          type: number
+          minimum: 0
+        
+
+          
