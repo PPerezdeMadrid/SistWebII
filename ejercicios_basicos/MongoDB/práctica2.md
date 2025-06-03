@@ -172,8 +172,9 @@ db.trips.aggregate([
   { $limit: 5 }
 ])
 ```
-
+--- 
 # Nivel 2
+
 1. En `sample_training.companies`, ¿cuántas empresas tienen más empleados que el año en el que se fundaron? (sol. 324)
 
 > Cuando se necesita comparar dos campos del mismo documento (por ejemplo, si `number_of_employees` es mayor que `founded_year`), se usa el operador `$expr`, que permite evaluar expresiones con múltiples campos:
@@ -209,14 +210,107 @@ db.listingsAndReviews.find({
   }
 })
 ```
+> Importante: `$and` va con `[ ]` !
 
 4. En `sample_airbnb.listingsAndReviews`, ¿cuántos documentos tienen el `"property_type"` "House" e incluyen `"Changing table"` como una de las `"amenities"`? (sol. 11)
+```js
+db.listingsAndReviews.find({
+  $expr: {
+    $and:[
+     {$eq:["$property_type", "House"]},
+     {$in: [ "Changing table","$amenities"]}
+    ]
+  }
+}).count()
+```
 
+> Importante: cuando usamos `$in` primero va lo que queremos encontrar ("Changing table") y después el array ("$amenities")
+
+```js
+db.listingsAndReviews.find({
+  property_type: "House", 
+  amenities: "Changing table"
+}).count()
+```
 
 5. En `sample_training.companies`, ¿cuántas empresas tienen oficinas en Seattle? (sol. 117)
+
+```bash
+  offices: [
+    {
+      description: '',
+      address1: '710 - 2nd Avenue',
+      address2: 'Suite 1100',
+      zip_code: '98104',
+      city: 'Seattle',
+      state_code: 'WA',
+      country_code: 'USA',
+      latitude: 47.603122,
+      longitude: -122.333253
+    },
+```
+
+```js
+db.companies.find({
+  "offices.city": "Seattle"
+}).count()
+```
+
+> Nota: Para buscar una palabra dentro de un string usa una expresión regular:
+```bash
+tag_list: 'wiki, seattle, elowitz, media-industry, media-platform, social-distribution-system',
+```
+```js
+db.companies.find({
+  tag_list: /(^|, )seattle(,|$)/i
+}).count()
+```
+
+
 6. En `sample_training.companies`, haga una query que devuelva únicamente el nombre de las empresas que tengan exactamente 8 `"funding_rounds"`
+```js
+db.companies.find(
+  { funding_rounds: { $size: 8 } },
+  { name: 1, _id: 0 }
+)
+```
+
 7. En `sample_training.trips`, ¿cuántos viajes empiezan en estaciones que están al oeste de la longitud -74? (sol. 1928)  
    Nota 1: Hacia el oeste la longitud decrece  
    Nota 2: el formato es `<field_name>: [ <longitud>, <latitud> ]`
+
+```bash
+  'start station location': { type: 'Point', coordinates: [ -73.99973337, 40.71910537 ] },
+```
+```js
+db.trips.find({
+  "start station location.coordinates.0":{$lt: -74}
+}).count()
+```
+> En MongoDB no se usa `coordinates[1]`sino `coordinates.1` para acceder al **segundo** elemento
+> Para acceder a varios niveles NO es "start station location".coordinates.0 sino  "start station location.coordinates.0"
+
 8. En `sample_training.inspections`, ¿cuántas inspecciones se llevaron a cabo en la ciudad de `"NEW YORK"`? (sol. 18279)
-9. En `sample_airbnb.listingsAndReviews`, haga una query que devuelva el nombre y la dirección de los alojamientos que tengan `"Internet"` como primer elemento de `"amenities"`
+```js
+db.inspections.find({
+  "address.city": "NEW YORK"
+}).count()
+```
+
+9. En `sample_airbnb.listingsAndReviews`, haga una query que devuelva el nombre y la calle de los alojamientos que tengan `"Internet"` como primer elemento de `"amenities"`
+```js
+db.listingsAndReviews.find(
+  {"amenities.0": "Internet"}, {_id:0, name:1, "address.street":1}
+)
+```
+
+
+---
+
+# Nivel 1
+1. ¿Cuántas colecciones tienen menos de 100 personas en el campo pop?
+
+2. En sample_training.trips ¿Cuál es la diferencia entre la gente que nació en 1998 y la que nació después de 1998?
+3. en sample_training.routes ¿Cuántas rutas tienen al menos una parada?
+4. ¿Cuántos negocios tienen un resultado de inspección "Out of Business" y pertenecen al sector "Home Improvement Contractor - 100"?
+5. En sample_training.inspections ¿Cuántos documentos hay con fecha de inspeccción "Feb 20 2015" o "Feb 21 2015" y cuyo sector no sea "Cigarette Retail Dealer - 127"?
